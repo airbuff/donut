@@ -1,46 +1,166 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Donut Settings</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>3D Donut Animation Settings</h1>
-        <form id="settingsForm" onsubmit="saveSettings(event)">
-            <div class="form-group">
-                <label for="color">Choose Donut Color:</label>
-                <input type="color" id="color" value="#ffffff">
-            </div>
-            
-            <div class="form-group">
-                <label for="zoom">Size: <span id="zoomValue">40</span></label>
-                <input type="range" id="zoom" min="10" max="100" value="40"
-                       oninput="document.getElementById('zoomValue').textContent = this.value">
-            </div>
-            
-            <div class="form-group">
-                <label for="speed">Animation Speed: <span id="speedValue">50</span>ms</label>
-                <input type="range" id="speed" min="10" max="200" value="50"
-                       oninput="document.getElementById('speedValue').textContent = this.value">
-            </div>
-            
-            <button type="submit" class="btn">Start Animation</button>
-        </form>
-    </div>
-    <script>
-        function saveSettings(event) {
-            event.preventDefault();
-            const settings = {
-                color: document.getElementById('color').value,
-                zoom: document.getElementById('zoom').value,
-                speed: document.getElementById('speed').value
-            };
-            localStorage.setItem('donutSettings', JSON.stringify(settings));
-            window.location.href = 'donut.html';
-        }
-    </script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>3D Donut Settings</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>Donut Animation</h1>
+            <form id="settingsForm" onsubmit="saveSettings(event)">
+                <div class="form-group">
+                    <label for="size">Size</label>
+                    <div class="slider-container">
+                        <input
+                            type="range"
+                            id="zoom"
+                            min="40"
+                            max="200"
+                            value="150"
+                            oninput="document.getElementById('zoomValue').textContent = this.value"
+                        />
+                        <span id="zoomValue" class="slider-value">150</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="speed">Speed (RPM)</label>
+                    <div class="slider-container">
+                        <input
+                            type="range"
+                            id="speed"
+                            min="0"
+                            max="300"
+                            value="120"
+                            oninput="document.getElementById('speedValue').textContent = this.value"
+                        />
+                        <span id="speedValue" class="slider-value">120</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Start Animation</button>
+            </form>
+        </div>
+
+        <style>
+            /* Add these specific styles for index.html */
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+                font-weight: 300;
+                letter-spacing: 0.1em;
+            }
+
+            .slider-container {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-top: 0.5rem;
+            }
+
+            .slider-value {
+                min-width: 3rem;
+                text-align: right;
+                font-family: monospace;
+                font-size: 1.1rem;
+                color: #4caf50;
+            }
+
+            input[type="range"] {
+                flex: 1;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 2px;
+                cursor: pointer;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 16px;
+                height: 16px;
+                background: #4caf50;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: transform 0.1s;
+            }
+
+            input[type="range"]::-webkit-slider-thumb:hover {
+                transform: scale(1.2);
+            }
+
+            input[type="range"]::-moz-range-thumb {
+                width: 16px;
+                height: 16px;
+                background: #4caf50;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: transform 0.1s;
+            }
+
+            input[type="range"]::-moz-range-thumb:hover {
+                transform: scale(1.2);
+            }
+
+            .form-group {
+                margin-bottom: 2rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #888;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 200px;
+                margin: 0 auto;
+                display: block;
+                padding: 1rem;
+                font-size: 1.1rem;
+                letter-spacing: 0.05em;
+                background: #4caf50;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+                transition: all 0.2s;
+            }
+
+            .btn:hover {
+                background: #45a049;
+                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 2.5rem;
+            }
+
+            @media (max-width: 600px) {
+                .container {
+                    padding: 1.5rem;
+                    width: 85%;
+                }
+            }
+        </style>
+
+        <script>
+            function saveSettings(event) {
+                event.preventDefault();
+                const settings = {
+                    zoom: document.getElementById("zoom").value,
+                    speed: document.getElementById("speed").value,
+                };
+                localStorage.setItem("donutSettings", JSON.stringify(settings));
+                window.location.href = "donut.html";
+            }
+        </script>
+    </body>
 </html>

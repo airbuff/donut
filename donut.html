@@ -1,28 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Spinning Donut</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        <div class="controls">
-            <button onclick="window.location.href='index.html'" class="btn secondary">
-                Back to Settings
-            </button>
-            <div class="control-group">
-                <label for="liveSpeed">Speed: <span id="liveSpeedValue">50</span>ms</label>
-                <input type="range" id="liveSpeed" min="10" max="200" value="50"
-                       oninput="updateLiveSpeed(this.value)">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>3D Spinning Donut</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <!-- Settings Section -->
+            <div class="settings-section">
+                <h2>Settings</h2>
+                <div class="control-group">
+                    <label for="liveSpeed">
+                        Speed (RPM): <span id="liveSpeedValue">120</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="liveSpeed"
+                        min="0"
+                        max="300"
+                        value="120"
+                        oninput="updateLiveSpeed(this.value)"
+                    />
+                </div>
+                <button
+                    onclick="window.location.href='index.html'"
+                    class="btn secondary small-btn"
+                >
+                    Back to Settings
+                </button>
+            </div>
+
+            <!-- Donut Render Section -->
+            <div class="donut-render-section">
+                <svg id="donut" viewBox="0 0 200 200"></svg>
             </div>
         </div>
-        
-        <div class="donut-container">
-            <svg id="donut" viewBox="0 0 200 200"></svg>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
+
+        <script src="script.js"></script>
+    </body>
 </html>
