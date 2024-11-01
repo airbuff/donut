@@ -1,3 +1,8 @@
+h1 {
+    width: 500px;
+    text-align: center;
+}
+
 /* Basic styling for body */
 body {
     display: flex;
@@ -10,6 +15,32 @@ body {
     font-family: Arial, sans-serif;
 }
 
+/* Styling for the toggle button */
+.toggle-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #444;
+}
+
+.heading-container {
+    text-align: center;
+    display: flex;
+}
+
+.settings-container {
+    display: flex;
+}
+
 /* Main container for `donut.html` */
 .container {
     display: flex;
@@ -19,6 +50,7 @@ body {
     margin-top: 2rem;
     flex-wrap: wrap;
     width: 100%;
+    height: 100%;
     max-width: 900px;
 }
 
@@ -39,6 +71,8 @@ body {
     align-items: center;
     width: 400px;
     height: 400px;
+    margin-top: 1.5rem; /* Added spacing from settings section */
+    margin-left: 5rem;
 }
 
 /* SVG styling for donut */

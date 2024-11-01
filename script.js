@@ -5,13 +5,22 @@ let lastTime = 0;
 // Load settings from localStorage
 const settings = JSON.parse(localStorage.getItem("donutSettings") || "{}");
 let size = parseInt(settings.zoom) || 40;
-let rpm = parseInt(settings.speed) || 120; // Now using RPM instead of ms
+let rpm = parseInt(settings.speed) || 120;
 
 // Initialize live speed control
 const liveSpeedInput = document.getElementById("liveSpeed");
 const liveSpeedValue = document.getElementById("liveSpeedValue");
 liveSpeedInput.value = rpm;
 liveSpeedValue.textContent = rpm;
+
+// Update live speed function
+function updateLiveSpeed(newRpm) {
+  rpm = parseInt(newRpm);
+  liveSpeedValue.textContent = rpm;
+  cancelAnimationFrame(animationId); // Cancel the current animation frame
+  lastTime = 0; // Reset time for consistent animation timing
+  animationId = requestAnimationFrame(renderDonut); // Restart animation with new speed
+}
 
 function renderDonut(timestamp) {
   if (!lastTime) lastTime = timestamp;
@@ -30,8 +39,7 @@ function renderDonut(timestamp) {
     "g",
   );
 
-  // Base hue that changes over time
-  const baseHue = (timestamp * 0.05) % 360;
+  const baseHue = ((A * 180) / Math.PI) % 360;
 
   for (let theta = 0; theta < 6.28; theta += thetaSpacing) {
     for (let phi = 0; phi < 6.28; phi += phiSpacing) {
@@ -65,13 +73,8 @@ function renderDonut(timestamp) {
         cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi);
 
       if (lum > 0) {
-        // Calculate hue based on position and time
         const hueOffset =
-          ((Math.atan2(screenY - 100, screenX - 100) * 180) / Math.PI +
-            (theta * 180) / Math.PI +
-            (phi * 180) / Math.PI) *
-          0.5;
-
+          (Math.atan2(screenY - 100, screenX - 100) * 180) / Math.PI;
         const hue = (baseHue + hueOffset) % 360;
         const saturation = 100;
         const lightness = Math.min(80, 40 + lum * 30);
