@@ -1,6 +1,9 @@
 const donutElement = document.getElementById("donut");
+
 let animationId;
 let lastTime = 0;
+let isRecording = false;
+let frames = [];
 
 // Load settings from localStorage
 const settings = JSON.parse(localStorage.getItem("donutSettings") || "{}");
@@ -20,6 +23,65 @@ function updateLiveSpeed(newRpm) {
   cancelAnimationFrame(animationId); // Cancel the current animation frame
   lastTime = 0; // Reset time for consistent animation timing
   animationId = requestAnimationFrame(renderDonut); // Restart animation with new speed
+}
+
+document.getElementById("startRecording").addEventListener("click", () => {
+  document.getElementById("startRecording").style.display = "none";
+  document.getElementById("stopRecording").style.display = "inline-block";
+  startRecording();
+});
+
+document.getElementById("stopRecording").addEventListener("click", () => {
+  document.getElementById("stopRecording").style.display = "none";
+  document.getElementById("startRecording").style.display = "inline-block";
+  stopRecordingAndCreateGif();
+});
+
+function captureFrame() {
+  const svgData = new XMLSerializer().serializeToString(donutElement);
+  return `data:image/svg+xml;base64,${btoa(svgData)}`;
+}
+
+function startRecording() {
+  isRecording = true;
+  frames = [];
+}
+
+function stopRecordingAndCreateGif() {
+  isRecording = false;
+
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+    width: 400,
+    height: 400,
+  });
+
+  // Convert SVG frames to images
+  const processFrames = frames.map((frame) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = frame;
+    });
+  });
+
+  Promise.all(processFrames).then((images) => {
+    images.forEach((image) => gif.addFrame(image, { delay: 33 })); // ~30fps
+
+    gif.on("finished", (blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "donut-animation.gif";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    gif.render();
+  });
 }
 
 function renderDonut(timestamp) {
@@ -97,6 +159,14 @@ function renderDonut(timestamp) {
 
   donutElement.appendChild(donutGroup);
   animationId = requestAnimationFrame(renderDonut);
+}
+
+if (isRecording && frames.length < 60) {
+  // 60 frames = 2 second GIF
+  frames.push(captureFrame());
+  if (frames.length === 60) {
+    stopRecordingAndCreateGif();
+  }
 }
 
 // Start the animation
