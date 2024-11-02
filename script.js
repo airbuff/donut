@@ -1,5 +1,6 @@
 const donutElement = document.getElementById("donut");
-
+const toggleButton = document.getElementById("toggleSettings");
+const settingsSection = document.getElementById("settingsSection");
 let animationId;
 let lastTime = 0;
 let isRecording = false;
@@ -16,80 +17,130 @@ const liveSpeedValue = document.getElementById("liveSpeedValue");
 liveSpeedInput.value = rpm;
 liveSpeedValue.textContent = rpm;
 
+// Toggle settings visibility
+toggleButton.addEventListener("click", () => {
+  settingsSection.style.display =
+    settingsSection.style.display === "none" ? "block" : "none";
+});
+
 // Update live speed function
 function updateLiveSpeed(newRpm) {
   rpm = parseInt(newRpm);
   liveSpeedValue.textContent = rpm;
-  cancelAnimationFrame(animationId); // Cancel the current animation frame
-  lastTime = 0; // Reset time for consistent animation timing
-  animationId = requestAnimationFrame(renderDonut); // Restart animation with new speed
+  cancelAnimationFrame(animationId);
+  lastTime = 0;
+  animationId = requestAnimationFrame(renderDonut);
 }
 
-document.getElementById("startRecording").addEventListener("click", () => {
-  document.getElementById("startRecording").style.display = "none";
-  document.getElementById("stopRecording").style.display = "inline-block";
-  startRecording();
-});
-
-document.getElementById("stopRecording").addEventListener("click", () => {
-  document.getElementById("stopRecording").style.display = "none";
-  document.getElementById("startRecording").style.display = "inline-block";
-  stopRecordingAndCreateGif();
-});
-
+// Recording functions
 function captureFrame() {
-  const svgData = new XMLSerializer().serializeToString(donutElement);
-  return `data:image/svg+xml;base64,${btoa(svgData)}`;
+  return new Promise((resolve) => {
+    const svgData = new XMLSerializer().serializeToString(donutElement);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#111"; // Match background color
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, 400, 400);
+      resolve(canvas.getContext("2d").getImageData(0, 0, 400, 400));
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  });
 }
 
 function startRecording() {
+  console.log("Started recording");
   isRecording = true;
   frames = [];
+  document.getElementById("startRecording").disabled = true;
 }
 
-function stopRecordingAndCreateGif() {
+async function stopRecordingAndCreateGif() {
+  console.log("Stopping recording, frames captured:", frames.length);
   isRecording = false;
+
+  if (frames.length === 0) {
+    console.error("No frames captured");
+    document.getElementById("startRecording").disabled = false;
+    return;
+  }
 
   const gif = new GIF({
     workers: 2,
     quality: 10,
     width: 400,
     height: 400,
+    workerScript:
+      "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
+    background: "#111",
   });
 
-  // Convert SVG frames to images
-  const processFrames = frames.map((frame) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.src = frame;
-    });
+  // Add progress indicator
+  const progress = document.createElement("div");
+  progress.style.position = "fixed";
+  progress.style.top = "20px";
+  progress.style.left = "50%";
+  progress.style.transform = "translateX(-50%)";
+  progress.style.background = "rgba(0,0,0,0.8)";
+  progress.style.padding = "10px";
+  progress.style.borderRadius = "5px";
+  progress.style.color = "white";
+  document.body.appendChild(progress);
+
+  gif.on("progress", (p) => {
+    progress.textContent = `Creating GIF: ${Math.round(p * 100)}%`;
   });
 
-  Promise.all(processFrames).then((images) => {
-    images.forEach((image) => gif.addFrame(image, { delay: 33 })); // ~30fps
+  // Add frames to GIF
+  for (const frame of frames) {
+    gif.addFrame(frame, { delay: 33 });
+  }
 
-    gif.on("finished", (blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "donut-animation.gif";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-
-    gif.render();
+  gif.on("finished", function (blob) {
+    console.log("GIF created, size:", blob.size);
+    document.body.removeChild(progress);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "donut-animation.gif";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    document.getElementById("startRecording").disabled = false;
   });
+
+  console.log("Starting GIF render");
+  gif.render();
 }
 
+// Button event listeners
+document.getElementById("startRecording").addEventListener("click", () => {
+  document.getElementById("startRecording").style.display = "none";
+  const stopButton = document.getElementById("stopRecording");
+  stopButton.style.display = "inline-block";
+  stopButton.classList.add("recording");
+  startRecording();
+});
+
+document.getElementById("stopRecording").addEventListener("click", () => {
+  const stopButton = document.getElementById("stopRecording");
+  stopButton.style.display = "none";
+  stopButton.classList.remove("recording");
+  document.getElementById("startRecording").style.display = "inline-block";
+  stopRecordingAndCreateGif();
+});
+
+// Main render function
 function renderDonut(timestamp) {
   if (!lastTime) lastTime = timestamp;
-  const deltaTime = (timestamp - lastTime) * 0.001; // Convert to seconds
+  const deltaTime = (timestamp - lastTime) * 0.001;
   lastTime = timestamp;
 
-  const rotationSpeed = (rpm * 2 * Math.PI) / 60; // Convert RPM to radians per second
+  const rotationSpeed = (rpm * 2 * Math.PI) / 60;
   const A = timestamp * 0.001 * rotationSpeed;
   const B = A * 0.5;
 
@@ -158,15 +209,25 @@ function renderDonut(timestamp) {
   }
 
   donutElement.appendChild(donutGroup);
-  animationId = requestAnimationFrame(renderDonut);
-}
 
-if (isRecording && frames.length < 60) {
-  // 60 frames = 2 second GIF
-  frames.push(captureFrame());
-  if (frames.length === 60) {
-    stopRecordingAndCreateGif();
+  // Frame capture
+  if (isRecording && frames.length < 60) {
+    captureFrame()
+      .then((imageData) => {
+        frames.push(imageData);
+        console.log("Frame captured:", frames.length);
+        if (frames.length === 60) {
+          stopRecordingAndCreateGif();
+        }
+      })
+      .catch((error) => {
+        console.error("Frame capture error:", error);
+        isRecording = false;
+        document.getElementById("startRecording").disabled = false;
+      });
   }
+
+  animationId = requestAnimationFrame(renderDonut);
 }
 
 // Start the animation
@@ -177,4 +238,9 @@ window.addEventListener("unload", () => {
   if (animationId) {
     cancelAnimationFrame(animationId);
   }
+});
+
+// Speed control event listener
+liveSpeedInput.addEventListener("input", (e) => {
+  updateLiveSpeed(e.target.value);
 });

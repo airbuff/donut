@@ -1,9 +1,3 @@
-h1 {
-    width: 500px;
-    text-align: center;
-}
-
-/* Basic styling for body */
 body {
     display: flex;
     align-items: center;
@@ -15,7 +9,34 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Styling for the toggle button */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 900px;
+}
+
+/* Recording animation */
+.recording {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Toggle button styling */
 .toggle-btn {
     background: #333;
     color: white;
@@ -32,28 +53,6 @@ body {
     background: #444;
 }
 
-.heading-container {
-    text-align: center;
-    display: flex;
-}
-
-.settings-container {
-    display: flex;
-}
-
-/* Main container for `donut.html` */
-.container {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-    width: 100%;
-    height: 100%;
-    max-width: 900px;
-}
-
 /* Settings section styling */
 .settings-section {
     background: rgba(255, 255, 255, 0.1);
@@ -61,7 +60,7 @@ body {
     border-radius: 8px;
     max-width: 300px;
     width: 100%;
-    text-align: center;
+    margin: 0 auto;
 }
 
 /* Donut render section styling */
@@ -71,18 +70,16 @@ body {
     align-items: center;
     width: 400px;
     height: 400px;
-    margin-top: 1.5rem; /* Added spacing from settings section */
-    margin-left: 5rem;
 }
 
-/* SVG styling for donut */
+/* SVG styling */
 #donut {
     width: 100%;
     height: 100%;
     overflow: visible;
 }
 
-/* Styling for control groups and sliders */
+/* Control groups and sliders */
 .control-group {
     margin-bottom: 1.5rem;
     text-align: center;
@@ -95,14 +92,6 @@ label {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #888;
-}
-
-input[type="color"] {
-    width: 100%;
-    height: 40px;
-    padding: 0;
-    border: none;
-    background: none;
 }
 
 input[type="range"] {
@@ -152,31 +141,23 @@ input[type="range"]::-moz-range-thumb:hover {
     cursor: pointer;
     font-size: 1rem;
     transition: background 0.2s;
+    margin: 0.5rem;
 }
 
 .btn:hover {
     background: #45a049;
 }
 
-.btn.secondary {
-    background: #666;
-}
-
-.btn.secondary:hover {
-    background: #555;
-}
-
-.btn.small-btn {
-    font-size: 0.8rem;
-    padding: 0.5rem 1rem;
+.control-buttons {
+    display: flex;
+    gap: 1rem;
     margin-top: 1rem;
 }
 
-/* Responsive adjustments for smaller screens */
+/* Responsive adjustments */
 @media (max-width: 600px) {
     .container {
-        flex-direction: column;
-        align-items: center;
+        padding: 1rem;
     }
 
     .donut-render-section {
