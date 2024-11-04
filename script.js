@@ -36,18 +36,23 @@ function updateLiveSpeed(newRpm) {
 function captureFrame() {
   return new Promise((resolve) => {
     const svgData = new XMLSerializer().serializeToString(donutElement);
+    const blob = new Blob([svgData], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
     const img = new Image();
+
     img.onload = () => {
       const canvas = document.createElement("canvas");
       canvas.width = 400;
       canvas.height = 400;
       const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#111"; // Match background color
+      ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, 400, 400);
-      resolve(canvas.getContext("2d").getImageData(0, 0, 400, 400));
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/png"));
     };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+
+    img.src = url;
   });
 }
 
@@ -62,23 +67,13 @@ async function stopRecordingAndCreateGif() {
   console.log("Stopping recording, frames captured:", frames.length);
   isRecording = false;
 
-  if (frames.length === 0) {
+  if (frames.length < 60) {
     console.error("No frames captured");
     document.getElementById("startRecording").disabled = false;
     return;
   }
 
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-    width: 400,
-    height: 400,
-    workerScript:
-      "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
-    background: "#111",
-  });
-
-  // Add progress indicator
+  // Create progress element
   const progress = document.createElement("div");
   progress.style.position = "fixed";
   progress.style.top = "20px";
@@ -90,30 +85,41 @@ async function stopRecordingAndCreateGif() {
   progress.style.color = "white";
   document.body.appendChild(progress);
 
+  const gif = new GIF({
+    workers: 2,
+    quality: 50,
+    width: 400,
+    height: 400,
+    workerScript: "/gif.worker.js", // Updated to use local worker file
+  });
+
+  // Add frames
+  for (const frameData of frames) {
+    const img = new Image();
+    img.src = frameData;
+    await new Promise((resolve) => (img.onload = resolve));
+    gif.addFrame(img, { delay: 3 });
+  }
+
   gif.on("progress", (p) => {
     progress.textContent = `Creating GIF: ${Math.round(p * 100)}%`;
   });
 
-  // Add frames to GIF
-  for (const frame of frames) {
-    gif.addFrame(frame, { delay: 33 });
-  }
-
-  gif.on("finished", function (blob) {
-    console.log("GIF created, size:", blob.size);
+  gif.on("finished", (blob) => {
     document.body.removeChild(progress);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "donut-animation.gif";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    // Create and trigger download
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = "donut-animation.gif";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(downloadLink.href);
+
     document.getElementById("startRecording").disabled = false;
   });
 
-  console.log("Starting GIF render");
   gif.render();
 }
 
@@ -134,7 +140,7 @@ document.getElementById("stopRecording").addEventListener("click", () => {
   stopRecordingAndCreateGif();
 });
 
-// Main render function
+// Main render function (your existing renderDonut function remains the same)
 function renderDonut(timestamp) {
   if (!lastTime) lastTime = timestamp;
   const deltaTime = (timestamp - lastTime) * 0.001;
@@ -213,8 +219,8 @@ function renderDonut(timestamp) {
   // Frame capture
   if (isRecording && frames.length < 60) {
     captureFrame()
-      .then((imageData) => {
-        frames.push(imageData);
+      .then((frameData) => {
+        frames.push(frameData);
         console.log("Frame captured:", frames.length);
         if (frames.length === 60) {
           stopRecordingAndCreateGif();
