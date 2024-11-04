@@ -34,7 +34,7 @@ function updateLiveSpeed(newRpm) {
 
 // Recording functions
 function captureFrame() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const svgData = new XMLSerializer().serializeToString(donutElement);
     const blob = new Blob([svgData], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
@@ -50,6 +50,12 @@ function captureFrame() {
       ctx.drawImage(img, 0, 0, 400, 400);
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL("image/png"));
+      console.log("Frame captured successfully.");
+    };
+
+    img.onerror = (e) => {
+      console.error("Error loading image for frame capture:", e);
+      reject(e);
     };
 
     img.src = url;
@@ -67,7 +73,7 @@ async function stopRecordingAndCreateGif() {
   console.log("Stopping recording, frames captured:", frames.length);
   isRecording = false;
 
-  if (frames.length < 60) {
+  if (frames.length === 10) {
     console.error("No frames captured");
     document.getElementById("startRecording").disabled = false;
     return;
@@ -221,8 +227,9 @@ function renderDonut(timestamp) {
     captureFrame()
       .then((frameData) => {
         frames.push(frameData);
-        console.log("Frame captured:", frames.length);
+        console.log(`Frame captured: ${frames.length}`);
         if (frames.length === 60) {
+          console.log("All frames captured. Stopping recording...");
           stopRecordingAndCreateGif();
         }
       })
